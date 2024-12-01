@@ -1,5 +1,6 @@
 import utils.lines
 import utils.resource
+import utils.words
 import kotlin.math.absoluteValue
 
 fun main() {
@@ -13,9 +14,9 @@ class Day1(lines: List<String>) : Day() {
 
     init {
         lines
-            .map { it.split(Regex("\\s+")).mapNotNull { it.toIntOrNull() } }
-            .fold(Pair(emptyList<Int>(), emptyList<Int>())) { list, current ->
-                (list.first + current.first()) to (list.second + current.last())
+            .map { it.words().map { it.toIntOrNull() ?: 0 } }
+            .fold(Pair(emptyList<Int>(), emptyList<Int>())) { pair, current ->
+                (pair.first + current.first()) to (pair.second + current.last())
             }
             .let { (l, r) ->
                 left = l.sorted()
@@ -30,11 +31,11 @@ class Day1(lines: List<String>) : Day() {
         }
 
     override fun part2() = left
-        .counted()
-        .sumOf {
-            it.first * it.second * right.counted().toMap().getOrDefault(it.first, 0)
+        .counted().entries
+        .sumOf { (num, count) ->
+            num * count * right.counted().toMap().getOrDefault(num, 0)
         }
 
-    fun <T> Iterable<T>.counted() = groupBy { it }
-        .map { it.key to it.value.size }
+    fun <T> Iterable<T>.counted() = groupBy { it }.entries
+        .associate { it.key to it.value.size }
 }
