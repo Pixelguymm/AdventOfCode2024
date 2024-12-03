@@ -10,22 +10,20 @@ class Day3(private val input: String) : Day() {
         op.groupValues.drop(1).map { it.toIntOrNull() ?: 0 }.product()
     }
 
-    override fun part2() = Regex("do(?:n't)?\\(\\)|mul\\((\\d+),(\\d+)\\)").findAll(input).let { operations ->
-        var sum = 0
-        var enabled = true
+    override fun part2() = Regex("do(?:n't)?\\(\\)|mul\\((\\d+),(\\d+)\\)").findAll(input)
+        .fold(0 to true) { (sum, enabled), op ->
+            val command = op.value.substringBefore('(')
 
-        operations.forEach { op ->
-            when (op.value.substringBefore('(')) {
-                "do" -> enabled = true
-                "don't" -> enabled = false
-                "mul" -> {
-                    if (enabled) sum += op.groupValues.drop(1).map { it.toIntOrNull() ?: 0 }.product()
+            when {
+                command == "do" -> sum to true
+                command == "don't" -> sum to false
+                command == "mul" && enabled -> {
+                    sum + op.groupValues.drop(1).map { it.toIntOrNull() ?: 0 }.product() to true
                 }
+                // won't happen
+                else -> sum to enabled
             }
-        }
-
-        sum
-    }
+        }.first
 
     fun List<Int>.product() = reduce { acc, i -> acc * i }
 }
