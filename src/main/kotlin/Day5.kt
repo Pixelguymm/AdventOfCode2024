@@ -14,12 +14,11 @@ fun main() {
 typealias Rule = Pair<String, String>
 
 class Day5(private val rules: List<Rule>, private val updates: List<List<String>>) : Day() {
-
     override fun part1() = updates.filter { update -> rules.all { update follows it } }.sumOf {
-        it[it.size / 2].toIntOrNull() ?: 0
+        it.middle().toIntOrNull() ?: 0
     }
 
-    override fun part2() = updates.filter { update -> rules.any { !(update follows it) } }.sumOf { update ->
+    override fun part2() = updates.filter { update -> rules.any { update breaks it } }.sumOf { update ->
         var fixed = update
 
         var i = -1
@@ -27,25 +26,28 @@ class Day5(private val rules: List<Rule>, private val updates: List<List<String>
         while (++i < rules.size) {
             val rule = rules[i]
 
-            if (!(fixed follows rule)) {
+            if (fixed breaks rule) {
                 val idx1 = fixed.indexOf(rule.first)
                 val idx2 = fixed.indexOf(rule.second)
 
-                fixed = listOf(
-                    *fixed.slice(0..<idx2).toTypedArray(),
-                    rule.first, rule.second,
-                    *fixed.toMutableList().apply { removeAt(idx1) }.slice(idx2+1..<fixed.size-1).toTypedArray()
-                )
+                fixed = fixed.toMutableList().apply {
+                    val removed = removeAt(idx1)
+                    add(idx2, removed)
+                }
 
                 i = -1
             }
         }
 
-        fixed[fixed.size / 2].toIntOrNull() ?: 0
+        fixed.middle().toIntOrNull() ?: 0
     }
 
     infix fun List<String>.follows(rule: Rule) =
         indexOf(rule.first) < (indexOfOrNull(rule.second) ?: Int.MAX_VALUE)
 
+    infix fun List<String>.breaks(rule: Rule) = !follows(rule)
+
     fun <T> List<T>.indexOfOrNull(t: T) = indexOf(t).let { if (it == -1) null else it }
+
+    fun <T> List<T>.middle() = get(size / 2)
 }
